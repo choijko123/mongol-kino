@@ -2,12 +2,6 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-
-
-
-
-
-
 const firebaseConfig = {
   apiKey: "AIzaSyAedkLGTlj4cci0Yk13tarDR40M15xDh8U",
   authDomain: "allinone-6b949.firebaseapp.com",
@@ -18,12 +12,8 @@ const firebaseConfig = {
   measurementId: "G-XTYHXQRFZ6"
 };
 
-
-
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export default app;
-
-
