@@ -81,11 +81,32 @@ export function Home({ movies, user, setPage, openWatch, subStatus }) {
   const trending = movies.slice(0, 10);
   const topRated = [...movies].sort((a,b)=>(b.likeCount||0)-(a.likeCount||0)).slice(0,10);
 
+  // tags-аар ангилна — админ Firestore-д tags[] тохируулна
+  function byTag(tag)  { return movies.filter(m=>(m.tags||[]).includes(tag)); }
+  function noTags()    { return movies.filter(m=>!(m.tags||[]).length); }
+
+  const rowFeatured = byTag("featured");
+  const rowTrending = byTag("trending");
+  const rowTop      = byTag("top");
+  const rowNew      = byTag("new");
+  const rowAction   = byTag("action");
+  const rowDrama    = byTag("drama");
+  const rowComedy   = byTag("comedy");
+  const rowHorror   = byTag("horror");
+  const rowAll      = movies; // "Бүх кино" row
+
   const allRows = [
-    {id:"trending", label:"🔥 Trending",  movies:trending, color:C.amber},
-    {id:"top",      label:"⭐ Top Rated", movies:topRated, color:C.cyan},
-    {id:"new",      label:"🆕 Шинэ кино", movies:movies,   color:C.green},
-  ];
+    rowFeatured.length && {id:"featured", label:"⭐ Онцлох кино",  movies:rowFeatured, color:"#f59e0b"},
+    rowTrending.length && {id:"trending", label:"🔥 Trending",     movies:rowTrending, color:C.amber},
+    rowTop.length      && {id:"top",      label:"👑 Top Rated",    movies:rowTop,      color:C.cyan},
+    rowNew.length      && {id:"new",      label:"🆕 Шинэ кино",   movies:rowNew,      color:C.green},
+    rowAction.length   && {id:"action",   label:"💥 Экшн кино",   movies:rowAction,   color:"#7c3aed"},
+    rowDrama.length    && {id:"drama",    label:"🎭 Драм",         movies:rowDrama,    color:"#ec4899"},
+    rowComedy.length   && {id:"comedy",   label:"😂 Инээдэм",     movies:rowComedy,   color:"#eab308"},
+    rowHorror.length   && {id:"horror",   label:"👻 Аймаар",      movies:rowHorror,   color:"#6366f1"},
+    // Tag байхгүй кинонуудыг "Бүх кино" мөрөнд харуулна
+    ...(noTags().length ? [{id:"all", label:"🎬 Бүх кино", movies:rowAll, color:"rgba(180,200,255,0.5)"}] : []),
+  ].filter(Boolean);
 
   if (!movies.length) return <EmptyState isMob={isMob} />;
 

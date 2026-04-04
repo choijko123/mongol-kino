@@ -34,6 +34,18 @@ const C = {
   orb:    "'Orbitron',sans-serif",
 };
 
+/* ── Категориуд ── */
+const CATEGORIES = [
+  { id:"featured", label:"Онцлох",   icon:"⭐", color:"#f59e0b" },
+  { id:"trending", label:"Trending", icon:"🔥", color:"#ef4444" },
+  { id:"new",      label:"Шинэ",     icon:"🆕", color:"#10b981" },
+  { id:"top",      label:"Top Rated",icon:"👑", color:"#00e5ff" },
+  { id:"action",   label:"Экшн",     icon:"💥", color:"#7c3aed" },
+  { id:"drama",    label:"Драм",     icon:"🎭", color:"#ec4899" },
+  { id:"comedy",   label:"Инээдэм",  icon:"😂", color:"#eab308" },
+  { id:"horror",   label:"Аймаар",   icon:"👻", color:"#6366f1" },
+];
+
 function glassCard(extra = {}) {
   return {
     background: C.card,
@@ -303,69 +315,224 @@ function DashboardTab({ stats, movies, subs, isMob }) {
    MOVIES TAB
 ══════════════════════════════════════════════════════ */
 function MoviesTab({ movies, fetchMovies, showToast, isMob }) {
-  const [search, setSearch] = useState("");
-  const [deleting, setDeleting] = useState(null);
+  const [search,    setSearch]    = useState("");
+  const [deleting,  setDeleting]  = useState(null);
+  const [editId,    setEditId]    = useState(null);   // кино ID засварлаж байна
+  const [saving,    setSaving]    = useState(false);
+  const [catFilter, setCatFilter] = useState("all");  // sidebar filter
+
+  /* editId-тай киноны одоогийн tags-ийг авна */
+  const editMovie = movies.find(m => m.id === editId);
+  const editTags  = editMovie?.tags || [];
 
   async function deleteMovie(id) {
     if (!window.confirm("Устгах уу?")) return;
     setDeleting(id);
     try {
       await deleteDoc(doc(db, "movies", id));
-      fetchMovies();
-      showToast("Устгагдлаа.");
+      fetchMovies(); showToast("Устгагдлаа.");
     } catch { showToast("Устгахад алдаа гарлаа.", "error"); }
     setDeleting(null);
   }
 
-  const filtered = movies.filter(m =>
-    m.title?.toLowerCase().includes(search.toLowerCase()) ||
-    m.description?.toLowerCase().includes(search.toLowerCase())
+  async function toggleTag(movieId, tag, hasTags) {
+    setSaving(true);
+    const cur  = hasTags || [];
+    const next = cur.includes(tag) ? cur.filter(t=>t!==tag) : [...cur, tag];
+    try {
+      await updateDoc(doc(db, "movies", movieId), { tags: next });
+      fetchMovies();
+      showToast(cur.includes(tag) ? `"${CATEGORIES.find(c=>c.id===tag)?.label}" хасагдлаа` : `"${CATEGORIES.find(c=>c.id===tag)?.label}" нэмэгдлээ`);
+    } catch { showToast("Алдаа гарлаа.", "error"); }
+    setSaving(false);
+  }
+
+  /* filter */
+  const filtered = movies.filter(m => {
+    const matchSearch = m.title?.toLowerCase().includes(search.toLowerCase()) ||
+                        m.description?.toLowerCase().includes(search.toLowerCase());
+    const matchCat    = catFilter === "all" || (m.tags||[]).includes(catFilter);
+    return matchSearch && matchCat;
+  });
+
+  /* stats per category */
+  const catCounts = Object.fromEntries(
+    CATEGORIES.map(c => [c.id, movies.filter(m=>(m.tags||[]).includes(c.id)).length])
   );
 
   return (
     <div>
       <PageTitle icon="▶" title="Кино удирдлага" sub={`Нийт ${movies.length} кино`} />
 
-      <div style={glassCard()}>
-        {/* Search */}
-        <div style={{ position:"relative", marginBottom:20 }}>
-          <svg style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}
-            width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,229,255,0.4)" strokeWidth="1.5">
-            <circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3" strokeLinecap="round"/>
-          </svg>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="Кино хайх..."
-            style={{ width:"100%", boxSizing:"border-box", padding:"10px 14px 10px 36px",
-              background:"rgba(0,229,255,0.04)", border:"1px solid rgba(0,229,255,0.15)",
-              borderRadius:8, color:C.text, fontSize:13, outline:"none", fontFamily:C.font }} />
+      <div style={{ display:"flex", gap:16, alignItems:"flex-start", flexWrap: isMob?"wrap":"nowrap" }}>
+
+        {/* ── Category sidebar ── */}
+        <div style={{ ...glassCard({ padding:12, marginBottom:0, flexShrink:0, width: isMob?"100%":190 }) }}>
+          <div style={{ fontSize:9, color:"rgba(0,229,255,0.4)", letterSpacing:2,
+            textTransform:"uppercase", fontFamily:C.mono, marginBottom:10, paddingLeft:4 }}>
+            Ангилал
+          </div>
+          {/* All */}
+          <button onClick={()=>setCatFilter("all")} style={{
+            width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
+            gap:8, padding:"9px 10px", borderRadius:8, border:"none", cursor:"pointer",
+            background: catFilter==="all" ? "rgba(0,229,255,0.1)" : "transparent",
+            color: catFilter==="all" ? C.cyan : C.muted,
+            fontFamily:C.font, fontWeight:700, fontSize:13, letterSpacing:0.5,
+            marginBottom:4, textAlign:"left", transition:"all 0.15s",
+          }}>
+            <span>📋 Бүгд</span>
+            <span style={{ fontSize:11, fontFamily:C.mono, opacity:0.7 }}>{movies.length}</span>
+          </button>
+          {CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={()=>setCatFilter(cat.id)} style={{
+              width:"100%", display:"flex", alignItems:"center", justifyContent:"space-between",
+              gap:8, padding:"9px 10px", borderRadius:8, border:"none", cursor:"pointer",
+              background: catFilter===cat.id ? `${cat.color}18` : "transparent",
+              color: catFilter===cat.id ? cat.color : C.muted,
+              fontFamily:C.font, fontWeight:700, fontSize:13, letterSpacing:0.5,
+              marginBottom:2, textAlign:"left", transition:"all 0.15s",
+              borderLeft: catFilter===cat.id ? `2px solid ${cat.color}` : "2px solid transparent",
+            }}>
+              <span>{cat.icon} {cat.label}</span>
+              <span style={{ fontSize:11, fontFamily:C.mono, opacity:0.7 }}>{catCounts[cat.id]||0}</span>
+            </button>
+          ))}
         </div>
 
-        {filtered.length === 0 && <Empty text="Кино олдсонгүй" />}
-        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-          {filtered.map(m => (
-            <div key={m.id} style={{
-              display:"flex", alignItems:"center", gap:14,
-              background:"rgba(0,229,255,0.02)", borderRadius:12,
-              padding:"12px 14px", border:`1px solid ${C.border}`,
-              transition:"border-color 0.2s",
-            }}>
-              {m.poster
-                ? <img src={m.poster} alt={m.title} style={{ width:44, height:60, objectFit:"cover", borderRadius:8, flexShrink:0, border:`1px solid ${C.border}` }} />
-                : <div style={{ width:44, height:60, borderRadius:8, background:"rgba(0,229,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:22 }}>🎬</div>
-              }
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontFamily:C.orb, fontWeight:700, fontSize:13, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:4 }}>{m.title}</div>
-                {!isMob && <div style={{ fontSize:12, color:C.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.description}</div>}
-              </div>
-              <button onClick={()=>deleteMovie(m.id)} disabled={deleting===m.id}
-                style={{ background:"transparent", border:"1px solid rgba(239,68,68,0.3)", color:"#ef4444",
-                  padding:"6px 14px", borderRadius:7, cursor:"pointer", fontSize:12,
-                  fontFamily:C.font, fontWeight:600, letterSpacing:1, whiteSpace:"nowrap",
-                  opacity: deleting===m.id ? 0.5 : 1, flexShrink:0 }}>
-                {deleting===m.id ? "..." : "Устгах"}
-              </button>
+        {/* ── Movie list ── */}
+        <div style={{ flex:1, minWidth:0 }}>
+          <div style={glassCard({ marginBottom:12 })}>
+            {/* Search */}
+            <div style={{ position:"relative" }}>
+              <svg style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}
+                width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,229,255,0.4)" strokeWidth="1.5">
+                <circle cx="6" cy="6" r="4"/><path d="M9.5 9.5l3 3" strokeLinecap="round"/>
+              </svg>
+              <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Кино хайх..."
+                style={{ width:"100%", boxSizing:"border-box", padding:"10px 14px 10px 36px",
+                  background:"rgba(0,229,255,0.04)", border:"1px solid rgba(0,229,255,0.15)",
+                  borderRadius:8, color:C.text, fontSize:13, outline:"none", fontFamily:C.font }} />
             </div>
-          ))}
+          </div>
+
+          {filtered.length === 0 && <Empty text="Кино олдсонгүй" />}
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {filtered.map(m => {
+              const isEditing = editId === m.id;
+              const tags = m.tags || [];
+              return (
+                <div key={m.id} style={{
+                  background:"rgba(0,229,255,0.02)", borderRadius:14,
+                  border:`1px solid ${isEditing ? "rgba(0,229,255,0.35)" : C.border}`,
+                  overflow:"hidden", transition:"border-color 0.2s",
+                  boxShadow: isEditing ? "0 0 20px rgba(0,229,255,0.06)" : "none",
+                }}>
+                  {/* Main row */}
+                  <div style={{ display:"flex", alignItems:"center", gap:14, padding:"12px 14px" }}>
+                    {/* Poster */}
+                    {m.poster
+                      ? <img src={m.poster} alt={m.title} style={{ width:44, height:60, objectFit:"cover", borderRadius:8, flexShrink:0, border:`1px solid ${C.border}` }} />
+                      : <div style={{ width:44, height:60, borderRadius:8, background:"rgba(0,229,255,0.04)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:22 }}>🎬</div>
+                    }
+
+                    {/* Info */}
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:C.orb, fontWeight:700, fontSize:13, color:"#fff",
+                        overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", marginBottom:6 }}>
+                        {m.title}
+                      </div>
+                      {/* Active tags */}
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                        {tags.length === 0 && (
+                          <span style={{ fontSize:10, color:"rgba(180,200,255,0.25)", fontFamily:C.mono }}>Ангилал байхгүй</span>
+                        )}
+                        {tags.map(t => {
+                          const cat = CATEGORIES.find(c=>c.id===t);
+                          if (!cat) return null;
+                          return (
+                            <span key={t} style={{
+                              fontSize:9, fontWeight:700, letterSpacing:1.5,
+                              padding:"2px 7px", borderRadius:4,
+                              background:`${cat.color}18`,
+                              border:`1px solid ${cat.color}44`,
+                              color:cat.color, fontFamily:C.mono,
+                              textTransform:"uppercase",
+                            }}>{cat.icon} {cat.label}</span>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div style={{ display:"flex", gap:6, flexShrink:0 }}>
+                      <button onClick={()=>setEditId(isEditing?null:m.id)} style={{
+                        background: isEditing ? "rgba(0,229,255,0.15)" : "rgba(0,229,255,0.05)",
+                        border:`1px solid ${isEditing ? "rgba(0,229,255,0.5)" : "rgba(0,229,255,0.2)"}`,
+                        color: isEditing ? C.cyan : "rgba(0,229,255,0.6)",
+                        padding:"6px 12px", borderRadius:7, cursor:"pointer",
+                        fontSize:11, fontFamily:C.font, fontWeight:700,
+                        letterSpacing:1, whiteSpace:"nowrap", transition:"all 0.2s",
+                      }}>
+                        {isEditing ? "✕ Хаах" : "✏ Засах"}
+                      </button>
+                      <button onClick={()=>deleteMovie(m.id)} disabled={deleting===m.id} style={{
+                        background:"transparent", border:"1px solid rgba(239,68,68,0.3)",
+                        color:"#ef4444", padding:"6px 12px", borderRadius:7,
+                        cursor:"pointer", fontSize:11, fontFamily:C.font,
+                        fontWeight:600, letterSpacing:1, whiteSpace:"nowrap",
+                        opacity:deleting===m.id?0.5:1, transition:"all 0.2s",
+                      }}>
+                        {deleting===m.id?"...":"🗑"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── Category editor panel ── */}
+                  {isEditing && (
+                    <div style={{
+                      borderTop:`1px solid rgba(0,229,255,0.12)`,
+                      background:"rgba(0,229,255,0.02)",
+                      padding:"16px 16px 14px",
+                    }}>
+                      <div style={{ fontSize:9, color:"rgba(0,229,255,0.4)", letterSpacing:2,
+                        textTransform:"uppercase", fontFamily:C.mono, marginBottom:12 }}>
+                        Ангилал сонгох
+                      </div>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                        {CATEGORIES.map(cat => {
+                          const active = tags.includes(cat.id);
+                          return (
+                            <button key={cat.id}
+                              onClick={()=>toggleTag(m.id, cat.id, tags)}
+                              disabled={saving}
+                              style={{
+                                display:"flex", alignItems:"center", gap:6,
+                                padding:"8px 14px", borderRadius:8, cursor:"pointer",
+                                fontFamily:C.font, fontWeight:700, fontSize:13,
+                                letterSpacing:0.5, transition:"all 0.18s",
+                                border:`1.5px solid ${active ? cat.color : `${cat.color}33`}`,
+                                background: active ? `${cat.color}18` : "transparent",
+                                color: active ? cat.color : `${cat.color}88`,
+                                opacity: saving ? 0.5 : 1,
+                                transform: active ? "scale(1.03)" : "scale(1)",
+                              }}>
+                              <span style={{ fontSize:14 }}>{cat.icon}</span>
+                              {cat.label}
+                              {active && <span style={{ fontSize:10, marginLeft:2 }}>✓</span>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div style={{ marginTop:10, fontSize:11, color:C.muted, fontFamily:C.mono }}>
+                        {tags.length === 0 ? "Ангилал сонгогдоогүй байна" : `${tags.length} ангилалд орсон байна`}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

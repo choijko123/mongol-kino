@@ -1,162 +1,170 @@
 export const playerCSS = `
-  /* ── Base ─────────────────────────────────────────────── */
+  /* ── Shell ── */
   .kt-shell {
-    position: relative;
     background: #000;
+    position: relative;
     overflow: hidden;
-    cursor: none;
     user-select: none;
     -webkit-user-select: none;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    border-radius: 12px;
   }
-  .kt-shell.kt-fs { border-radius: 0; }
-  .kt-shell * { box-sizing: border-box; }
 
-  /* ── Custom cursor (desktop only) ────────────────────── */
-  .kt-cursor {
-    position: absolute;
-    width: 8px; height: 8px;
-    background: rgba(255,255,255,0.9);
-    border-radius: 50%;
-    pointer-events: none;
-    transform: translate(-50%,-50%);
-    transition: width 0.2s, height 0.2s, opacity 0.3s;
-    z-index: 99;
-    mix-blend-mode: difference;
-  }
-  .kt-cursor.big { width: 36px; height: 36px; }
-  .kt-cursor.gone { opacity: 0; }
-
-  /* ── Cinematic gradient overlays ────────────────────── */
+  /* ── Gradient overlays ── */
   .kt-grad-top {
-    position: absolute; inset: 0 0 auto 0; height: 120px;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%);
-    pointer-events: none; z-index: 5;
-    opacity: 0; transition: opacity 0.35s ease;
+    position: absolute; top: 0; left: 0; right: 0; height: 80px;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+    pointer-events: none; z-index: 2;
+    opacity: 1; transition: opacity 0.4s;
   }
   .kt-grad-bot {
-    position: absolute; inset: auto 0 0 0; height: 240px;
-    background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.6) 35%, transparent 100%);
-    pointer-events: none; z-index: 5;
-    opacity: 0; transition: opacity 0.35s ease;
+    position: absolute; bottom: 0; left: 0; right: 0; height: 140px;
+    background: linear-gradient(to top, rgba(0,0,0,0.88), transparent);
+    pointer-events: none; z-index: 2;
+    opacity: 1; transition: opacity 0.4s;
   }
-  .kt-shell:not(.kt-idle) .kt-grad-top,
-  .kt-shell:not(.kt-idle) .kt-grad-bot { opacity: 1; }
+  .kt-shell.kt-idle .kt-grad-top,
+  .kt-shell.kt-idle .kt-grad-bot { opacity: 0; }
 
-  /* ── Loading spinner ────────────────────────────────── */
+  /* ── Custom cursor ── */
+  .kt-cursor {
+    position: absolute; width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,229,255,0.55);
+    background: rgba(0,229,255,0.08);
+    transform: translate(-50%, -50%);
+    pointer-events: none; z-index: 20;
+    transition: opacity 0.25s, transform 0.1s;
+  }
+  .kt-cursor.gone { opacity: 0; }
+  .kt-shell.kt-idle .kt-cursor { opacity: 0; }
+
+  /* ── Spinner ── */
   .kt-spinner {
     position: absolute; inset: 0;
     display: none; align-items: center; justify-content: center;
     z-index: 10; pointer-events: none;
   }
   .kt-spinner-ring {
-    width: 48px; height: 48px;
-    border: 2.5px solid rgba(255,255,255,0.08);
-    border-top-color: #E50914;
+    width: 44px; height: 44px;
+    border: 3px solid rgba(0,229,255,0.15);
+    border-top-color: #00e5ff;
     border-radius: 50%;
-    animation: kt-spin 0.75s cubic-bezier(0.4,0,0.6,1) infinite;
+    animation: kt-spin 0.75s linear infinite;
   }
   @keyframes kt-spin { to { transform: rotate(360deg); } }
 
-  /* ── Tap-to-skip ripple zones ───────────────────────── */
+  /* ── Skip zones (double-tap) ── */
   .kt-zone {
     position: absolute; top: 0; bottom: 0; width: 35%;
     display: flex; align-items: center; justify-content: center;
-    pointer-events: none; z-index: 18;
+    pointer-events: none; z-index: 8; opacity: 0;
+    transition: opacity 0.15s;
   }
   .kt-zone.left  { left: 0; }
   .kt-zone.right { right: 0; }
-  .kt-zone-inner {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    opacity: 0; transform: scale(0.8);
-    transition: opacity 0.12s, transform 0.12s;
-  }
-  .kt-zone.show .kt-zone-inner { opacity: 1; transform: scale(1); }
+  .kt-zone.show  { opacity: 1; }
+
   .kt-zone-ripple {
-    position: absolute; inset: 0;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.07);
-    transform: scale(0); opacity: 1;
-    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    position: absolute; inset: 0; border-radius: 0;
   }
-  .kt-zone.show .kt-zone-ripple { transform: scale(1.4); opacity: 0; }
-  .kt-zone-arrows { font-size: 20px; letter-spacing: -6px; color: rgba(255,255,255,0.9); }
+  .kt-zone.left  .kt-zone-ripple { background: radial-gradient(ellipse at 20% 50%, rgba(0,229,255,0.18) 0%, transparent 70%); }
+  .kt-zone.right .kt-zone-ripple { background: radial-gradient(ellipse at 80% 50%, rgba(0,229,255,0.18) 0%, transparent 70%); }
+
+  .kt-zone-inner {
+    display: flex; flex-direction: column; align-items: center; gap: 4;
+    z-index: 1;
+  }
+  .kt-zone-arrows {
+    font-size: 28px; color: rgba(0,229,255,0.9);
+    text-shadow: 0 0 16px rgba(0,229,255,0.8);
+    font-family: sans-serif; line-height: 1;
+  }
   .kt-zone-label {
-    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500;
-    color: rgba(255,255,255,0.75); letter-spacing: 0.5px;
+    font-size: 12px; color: rgba(0,229,255,0.75);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
   }
 
-  /* ── Center play/pause button ───────────────────────── */
-  .kt-play-btn {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%,-50%);
-    width: 80px; height: 80px; border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(255,255,255,0.2);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; z-index: 20;
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
-                background 0.2s, opacity 0.3s;
-  }
-  .kt-play-btn:hover {
-    transform: translate(-50%,-50%) scale(1.12);
-    background: rgba(255,255,255,0.18);
-  }
-  .kt-play-btn.kt-hidden { opacity: 0; pointer-events: none; }
-
-  /* ── Паused big indicator ───────────────────────────── */
+  /* ── Pause overlay ── */
   .kt-pause-overlay {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
-    pointer-events: none; z-index: 15;
-    opacity: 0; transition: opacity 0.25s;
+    z-index: 7; opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
   }
   .kt-pause-overlay.show { opacity: 1; }
   .kt-pause-ring {
-    width: 70px; height: 70px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15);
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    border: 1.5px solid rgba(0,229,255,0.3);
     display: flex; align-items: center; justify-content: center;
-    animation: kt-pulse-ring 1.8s ease-in-out infinite;
-  }
-  @keyframes kt-pulse-ring {
-    0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.15); }
-    50%      { box-shadow: 0 0 0 16px rgba(255,255,255,0); }
+    box-shadow: 0 0 32px rgba(0,229,255,0.15);
   }
 
-  /* ── Controls bar ────────────────────────────────────── */
+  /* ── Center play/pause button ── */
+  .kt-play-btn {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(0,229,255,0.15);
+    border: 1.5px solid rgba(0,229,255,0.35);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9;
+    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), background 0.2s, opacity 0.3s;
+    box-shadow: 0 0 28px rgba(0,229,255,0.3);
+  }
+  .kt-play-btn:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(0,229,255,0.25);
+  }
+  .kt-play-btn.kt-hidden {
+    opacity: 0; pointer-events: none;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+
+  /* ── Title strip (top bar) ── */
+  .kt-title-strip {
+    position: absolute; top: 0; left: 0; right: 0;
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 10;
+    z-index: 6;
+    opacity: 1; transition: opacity 0.4s;
+  }
+  .kt-shell.kt-idle .kt-title-strip { opacity: 0; }
+  .kt-genre-badge {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; font-family: 'Space Mono', monospace;
+    color: #00e5ff; background: rgba(0,229,255,0.12);
+    border: 1px solid rgba(0,229,255,0.3);
+    padding: 3px 8px; border-radius: 4px; flex-shrink: 0;
+  }
+  .kt-title-text {
+    font-family: 'Orbitron', sans-serif; font-size: 13px;
+    font-weight: 700; color: rgba(255,255,255,0.75);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    letter-spacing: 1px;
+  }
+
+  /* ── Controls bar ── */
   .kt-controls {
-    position: absolute; inset: auto 0 0 0;
-    padding: 0 20px 18px;
-    display: flex; flex-direction: column; gap: 10px;
-    z-index: 25;
-    opacity: 0; transform: translateY(8px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 0 16px 14px; z-index: 6;
+    opacity: 1; transition: opacity 0.4s;
   }
-  .kt-shell:not(.kt-idle) .kt-controls {
-    opacity: 1; transform: translateY(0); pointer-events: auto;
-  }
+  .kt-shell.kt-idle .kt-controls { opacity: 0; pointer-events: none; }
 
-  /* ── Progress track ─────────────────────────────────── */
+  /* ── Progress bar ── */
   .kt-prog-wrap {
-    position: relative;
-    height: 18px; display: flex; align-items: center;
-    cursor: pointer;
+    position: relative; padding: 10px 0 6px; cursor: pointer;
     touch-action: none;
   }
   .kt-prog-track {
-    position: relative; width: 100%; height: 3px;
-    background: rgba(255,255,255,0.18);
-    border-radius: 2px;
-    transition: height 0.2s ease;
-    overflow: visible;
+    height: 3px; background: rgba(255,255,255,0.18);
+    border-radius: 2px; position: relative;
+    transition: height 0.15s;
   }
   .kt-prog-wrap:hover .kt-prog-track,
-  .kt-prog-wrap.dragging .kt-prog-track { height: 5px; }
+  .kt-prog-wrap.dragging .kt-prog-track { height: 6px; }
+
   .kt-prog-buf {
     position: absolute; top: 0; left: 0; height: 100%;
     background: rgba(255,255,255,0.25); border-radius: 2px;
@@ -164,172 +172,117 @@ export const playerCSS = `
   }
   .kt-prog-fill {
     position: absolute; top: 0; left: 0; height: 100%;
-    background: #E50914; border-radius: 2px;
-    pointer-events: none; transition: width 0.05s;
+    background: linear-gradient(90deg, #00e5ff, #7c3aed);
+    border-radius: 2px; pointer-events: none;
   }
   .kt-prog-thumb {
-    position: absolute; top: 50%; right: -6px;
-    width: 14px; height: 14px; border-radius: 50%;
-    background: #fff; transform: translateY(-50%) scale(0);
-    transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-    pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    position: absolute; right: -5px; top: 50%;
+    transform: translateY(-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #00e5ff; opacity: 0;
+    transition: opacity 0.15s;
+    box-shadow: 0 0 8px rgba(0,229,255,0.8);
   }
   .kt-prog-wrap:hover .kt-prog-thumb,
-  .kt-prog-wrap.dragging .kt-prog-thumb { transform: translateY(-50%) scale(1); }
+  .kt-prog-wrap.dragging .kt-prog-thumb { opacity: 1; }
 
-  /* Tooltip */
+  /* Hover time tooltip */
   .kt-prog-tip {
-    position: absolute; bottom: 20px;
-    background: rgba(20,20,20,0.95);
-    color: #fff; font-family: 'Outfit', sans-serif;
-    font-size: 12px; font-weight: 500;
-    padding: 4px 8px; border-radius: 4px;
-    white-space: nowrap; pointer-events: none;
-    opacity: 0; transition: opacity 0.15s;
+    position: absolute; top: -28px;
     transform: translateX(-50%);
+    background: rgba(8,9,26,0.9);
+    border: 1px solid rgba(0,229,255,0.25);
+    color: #e0e8ff; font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 7px; border-radius: 5px;
+    pointer-events: none; white-space: nowrap;
+    opacity: 0; transition: opacity 0.15s;
   }
   .kt-prog-wrap:hover .kt-prog-tip { opacity: 1; }
 
-  /* ── Button row ─────────────────────────────────────── */
+  /* ── Button row ── */
   .kt-btn-row {
-    display: flex; align-items: center; gap: 4px;
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 4px;
   }
   .kt-btn {
     background: transparent; border: none;
-    color: rgba(255,255,255,0.85); cursor: pointer;
+    color: rgba(220,235,255,0.8); cursor: pointer;
+    padding: 6px; border-radius: 6px;
     display: flex; align-items: center; justify-content: center;
-    width: 42px; height: 42px; border-radius: 50%;
-    transition: color 0.15s, background 0.15s, transform 0.15s;
-    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+    position: relative;
   }
-  .kt-btn:hover {
-    color: #fff;
-    background: rgba(255,255,255,0.1);
-    transform: scale(1.1);
-  }
-  .kt-btn:active { transform: scale(0.95); }
+  .kt-btn:hover { color: #00e5ff; background: rgba(0,229,255,0.08); }
 
-  /* Skip buttons special */
   .kt-btn.skip { position: relative; }
-  .kt-btn.skip .kt-skip-num {
-    position: absolute;
-    font-family: 'Outfit', sans-serif;
-    font-size: 8px; font-weight: 700;
-    line-height: 1; letter-spacing: 0;
-    top: 55%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: currentColor;
-  }
+  .kt-skip-num { font-size: 7px !important; }
 
-  /* ── Volume group ───────────────────────────────────── */
+  /* ── Time display ── */
+  .kt-time {
+    font-size: 12px; color: rgba(200,215,255,0.65);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap; padding: 0 4px;
+    letter-spacing: 0.5px;
+  }
+  .kt-time b { color: #fff; font-weight: 700; }
+
+  /* ── Volume group ── */
   .kt-vol-group {
-    display: flex; align-items: center; gap: 4px;
-    overflow: hidden;
+    display: flex; align-items: center; gap: 2px;
   }
   .kt-vol-slider {
-    width: 0; opacity: 0;
-    transition: width 0.25s ease, opacity 0.25s ease;
+    width: 0; overflow: hidden;
+    transition: width 0.25s cubic-bezier(0.16,1,0.3,1);
   }
-  .kt-vol-group:hover .kt-vol-slider,
-  .kt-vol-group:focus-within .kt-vol-slider {
-    width: 72px; opacity: 1;
-  }
-  .kt-vol-slider input {
-    width: 72px; height: 3px;
-    -webkit-appearance: none; appearance: none;
-    background: transparent; cursor: pointer;
-    outline: none;
-  }
-  .kt-vol-slider input::-webkit-slider-runnable-track {
-    height: 3px; border-radius: 2px;
-    background: rgba(255,255,255,0.25);
-  }
-  .kt-vol-slider input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px; height: 12px;
-    border-radius: 50%; background: #fff;
-    margin-top: -4.5px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
-  .kt-vol-slider input::-moz-range-track {
-    height: 3px; border-radius: 2px;
-    background: rgba(255,255,255,0.25);
-  }
-  .kt-vol-slider input::-moz-range-thumb {
-    border: none; width: 12px; height: 12px;
-    border-radius: 50%; background: #fff;
+  .kt-vol-group:hover .kt-vol-slider { width: 72px; }
+  .kt-vol-slider input[type=range] {
+    width: 68px; height: 3px; accent-color: #00e5ff;
+    cursor: pointer; display: block;
+    margin: 0 4px;
   }
 
-  /* ── Time display ───────────────────────────────────── */
-  .kt-time {
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px; font-weight: 400;
-    color: rgba(255,255,255,0.75);
-    white-space: nowrap;
-    letter-spacing: 0.3px;
-    padding: 0 6px;
-  }
-  .kt-time b { color: #fff; font-weight: 600; }
-
-  /* ── Speed pill ─────────────────────────────────────── */
+  /* ── Speed button ── */
   .kt-speed {
-    font-family: 'Outfit', sans-serif;
-    font-size: 12px; font-weight: 600;
-    color: rgba(255,255,255,0.75);
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    padding: 4px 10px; border-radius: 4px;
-    cursor: pointer; letter-spacing: 0.3px;
-    transition: background 0.15s, color 0.15s;
-    white-space: nowrap;
+    background: rgba(0,229,255,0.07);
+    border: 1px solid rgba(0,229,255,0.18);
+    color: rgba(180,200,255,0.7);
+    font-size: 11px; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    padding: 4px 9px; border-radius: 5px;
+    cursor: pointer; letter-spacing: 0.5px;
+    transition: all 0.2s;
   }
-  .kt-speed:hover { background: rgba(255,255,255,0.16); color: #fff; }
-  .kt-speed.active { background: #E50914; border-color: #E50914; color: #fff; }
-
-  /* ── Title strip (top-left when idle mode off) ──────── */
-  .kt-title-strip {
-    position: absolute; top: 0; left: 0; right: 0;
-    padding: 16px 20px;
-    display: flex; align-items: center; gap: 12px;
-    z-index: 20;
-    opacity: 0; transform: translateY(-6px);
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: none;
-  }
-  .kt-shell:not(.kt-idle) .kt-title-strip {
-    opacity: 1; transform: translateY(0);
-  }
-  .kt-title-text {
-    font-family: 'Outfit', sans-serif;
-    font-size: 15px; font-weight: 600;
-    color: rgba(255,255,255,0.9);
-    text-shadow: 0 1px 8px rgba(0,0,0,0.6);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .kt-genre-badge {
-    font-family: 'Outfit', sans-serif;
-    font-size: 10px; font-weight: 700;
-    color: #E50914; background: rgba(229,9,20,0.12);
-    border: 1px solid rgba(229,9,20,0.3);
-    padding: 2px 8px; border-radius: 3px;
-    text-transform: uppercase; letter-spacing: 1px;
-    flex-shrink: 0;
+  .kt-speed:hover,
+  .kt-speed.active {
+    background: rgba(0,229,255,0.15);
+    border-color: rgba(0,229,255,0.45);
+    color: #00e5ff;
   }
 
-  /* ── Fullscreen icon swap ───────────────────────────── */
-  .kt-fs-icon-enter { display: block; }
-  .kt-fs-icon-exit  { display: none; }
+  /* ── Fullscreen icons ── */
+  .kt-fs-icon-exit { display: none; }
   .kt-shell.kt-fs .kt-fs-icon-enter { display: none; }
   .kt-shell.kt-fs .kt-fs-icon-exit  { display: block; }
 
-  /* ── Mobile adjustments ─────────────────────────────── */
+  /* ── Fullscreen shell ── */
+  .kt-shell:-webkit-full-screen,
+  .kt-shell:fullscreen {
+    border-radius: 0 !important;
+  }
+
+  /* ── Mobile touch feedback ── */
   @media (max-width: 639px) {
-    .kt-play-btn { width: 64px; height: 64px; }
-    .kt-btn { width: 38px; height: 38px; }
-    .kt-controls { padding: 0 12px 14px; gap: 8px; }
+    .kt-play-btn { width: 60px; height: 60px; }
+    .kt-controls { padding: 0 12px 12px; }
+    .kt-btn { padding: 5px; }
+    .kt-vol-group:hover .kt-vol-slider { width: 60px; }
     .kt-time { font-size: 11px; }
-    .kt-speed { font-size: 11px; padding: 3px 8px; }
-    .kt-vol-group:hover .kt-vol-slider { width: 0; opacity: 0; }
-    .kt-title-text { font-size: 13px; }
+    .kt-title-text { font-size: 11px; }
+  }
+
+  /* ── Back button ── */
+  button[style*="backBtn"] {
+    transition: all 0.2s;
   }
 `;
