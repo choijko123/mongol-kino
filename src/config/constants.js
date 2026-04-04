@@ -9,9 +9,9 @@ export const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
 // Subscription дансны мэдээлэл
 export const BANK_INFO = {
   bank: "Хаан Банк",        // ← өөрийн банк
-  account: "5000123456",    // ← өөрийн данс
-  name: "Б.Батболд",        // ← өөрийн нэр
-  price: "9,900",           // ← үнэ
+  account: "5586016813",    // ← өөрийн данс
+  name: "э.энхтөр",        // ← өөрийн нэр
+  price: "500",           // ← үнэ
   currency: "₮",
   days: 30,                 // ← хэдэн хоног идэвхтэй байх
 };
