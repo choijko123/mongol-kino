@@ -1,4 +1,4 @@
-import { dfoisc49h, padzzmf3 } from "../config/constants";
+import { CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET } from "../config/constants";
 
 // Cloudinary руу файл upload хийх
 export async function uploadToCloudinary(file, onProgress) {

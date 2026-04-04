@@ -3,14 +3,14 @@
 export const ADMIN_EMAIL = "admin@movie.mn";
 
 // Cloudinary (cloudinary.com дээр үнэгүй бүртгүүлнэ)
-export const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
-export const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+export const CLOUDINARY_CLOUD_NAME = "dfoisc49h";
+export const CLOUDINARY_UPLOAD_PRESET = "padzzmf3";
 
 // Subscription дансны мэдээлэл
 export const BANK_INFO = {
   bank: "Хаан Банк",        // ← өөрийн банк
   account: "5586016813",    // ← өөрийн данс
-  name: "э.энхтөр",        // ← өөрийн нэр
+  name: "с.энхтөр",        // ← өөрийн нэр
   price: "500",           // ← үнэ
   currency: "₮",
   days: 30,                 // ← хэдэн хоног идэвхтэй байх
