@@ -4,7 +4,7 @@ import {
   collection, getDocs, addDoc, deleteDoc,
   doc, updateDoc, serverTimestamp,
 } from "firebase/firestore";
-import { BANK_INFO, CLOUDINARY_CLOUD_NAME } from "../config/constants";
+import { BANK_INFO, CLOUDINARY_CLOUD_NAME, PLANS } from "../config/constants";
 import { uploadToCloudinary } from "../services/cloudinary";
 import { useWindowWidth } from "../hooks/useWindowWidth";
 
@@ -690,8 +690,10 @@ function SubsTab({ subs, setSubs, loading, showToast, isMob }) {
 
   async function approveSub(uid) {
     setProcessing(uid);
+    const req = subs.find(r=>r.id===uid);
+    const days = req?.days || BANK_INFO.days;
     const expiry = new Date();
-    expiry.setDate(expiry.getDate() + BANK_INFO.days);
+    expiry.setDate(expiry.getDate() + days);
     try {
       await updateDoc(doc(db, "subscriptions", uid), { status:"active", approvedAt:serverTimestamp(), expiresAt:expiry });
       setSubs(prev => prev.map(r => r.id===uid ? {...r, status:"active", expiresAt:expiry} : r));
@@ -785,6 +787,20 @@ function SubsTab({ subs, setSubs, loading, showToast, isMob }) {
                       padding:"2px 8px", borderRadius:4, textTransform:"uppercase", fontFamily:C.mono,
                       background:`${sc}18`, color:sc,
                     }}>{sl}</span>
+                    {r.planLabel && (() => {
+                      const pl = PLANS?.find(p=>p.id===r.plan);
+                      return (
+                        <span style={{
+                          fontSize:9, fontWeight:700, letterSpacing:1.5,
+                          padding:"2px 8px", borderRadius:4, textTransform:"uppercase", fontFamily:C.mono,
+                          background: pl ? `${pl.accent}18` : "rgba(180,200,255,0.08)",
+                          border: `1px solid ${pl ? pl.accent+"44" : "rgba(180,200,255,0.15)"}`,
+                          color: pl ? pl.accent : "rgba(180,200,255,0.5)",
+                        }}>
+                          {r.planLabel} · ₮{r.price}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div style={{ fontSize:12, color:C.muted, marginBottom: r.note?4:0 }}>{r.email}</div>
                   {r.note && (

@@ -3,18 +3,48 @@
 export const ADMIN_EMAIL = "admin@movie.mn";
 
 // Cloudinary (cloudinary.com дээр үнэгүй бүртгүүлнэ)
-export const CLOUDINARY_CLOUD_NAME = "dfoisc49h";
-export const CLOUDINARY_UPLOAD_PRESET = "padzzmf3";
+export const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
+export const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
 
-// Subscription дансны мэдээлэл
+// ── Subscription дансны мэдээлэл ──
 export const BANK_INFO = {
-  bank: "Хаан Банк",        // ← өөрийн банк
-  account: "5586016813",    // ← өөрийн данс
-  name: "с.энхтөр",        // ← өөрийн нэр
-  price: "500",           // ← үнэ
+  bank:     "Хаан Банк",     // ← өөрийн банк
+  account:  "5586016813",    // ← өөрийн данс
+  name:     "C.энхтөр",     // ← өөрийн нэр
   currency: "₮",
-  days: 30,                 // ← хэдэн хоног идэвхтэй байх
 };
+
+// ── Үнийн сонголтууд ──────────────────────────────────────────────
+// id нь Firestore subscriptions.plan талбарт хадгалагдана
+export const PLANS = [
+  {
+    id:       "weekly",
+    label:    "7 хоног",
+    days:     7,
+    price:    "4,900",
+    badge:    null,
+    features: ["Бүх кино үзэх", "HD чанар", "Дурын төхөөрөмж"],
+    accent:   "#7c3aed",
+  },
+  {
+    id:       "monthly",
+    label:    "1 сар",
+    days:     30,
+    price:    "9,900",
+    badge:    "Хамгийн алдартай",
+    features: ["Бүх кино үзэх", "HD чанар", "Дурын төхөөрөмж", "Шинэ кино шууд"],
+    accent:   "#00e5ff",
+  },
+  {
+    id:       "yearly",
+    label:    "1 жил",
+    days:     365,
+    price:    "79,900",
+    badge:    "Хэмнэлттэй",
+    features: ["Бүх кино үзэх", "4K чанар", "Дурын төхөөрөмж", "Шинэ кино шууд", "Зар байхгүй"],
+    accent:   "#f59e0b",
+  },
+];
 
 // Google Fonts
 const link = document.createElement("link");
