@@ -77,7 +77,7 @@ export default function App() {
   return (
     <div style={{ minHeight:"100vh", background:"#08091a", color:"#e0e8ff", fontFamily:"'Rajdhani',sans-serif" }}>
       <style>{css}</style>
-      <Nav user={user} isAdmin={isAdmin} page={page} setPage={setPage} />
+      <Nav user={user} isAdmin={isAdmin} page={page} setPage={setPage} subStatus={subStatus} />
       {toast && <Toast {...toast} />}
 
       {page === "home" && (

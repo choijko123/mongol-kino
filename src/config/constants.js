@@ -3,8 +3,8 @@
 export const ADMIN_EMAIL = "admin@movie.mn";
 
 // Cloudinary (cloudinary.com дээр үнэгүй бүртгүүлнэ)
-export const CLOUDINARY_CLOUD_NAME = "YOUR_CLOUD_NAME";
-export const CLOUDINARY_UPLOAD_PRESET = "YOUR_UPLOAD_PRESET";
+export const CLOUDINARY_CLOUD_NAME = "dfoisc49h";
+export const CLOUDINARY_UPLOAD_PRESET = "padzzmf3";
 
 // ── Subscription дансны мэдээлэл ──
 export const BANK_INFO = {
@@ -21,7 +21,7 @@ export const PLANS = [
     id:       "weekly",
     label:    "7 хоног",
     days:     7,
-    price:    "4,900",
+    price:    "900",
     badge:    null,
     features: ["Бүх кино үзэх", "HD чанар", "Дурын төхөөрөмж"],
     accent:   "#7c3aed",
@@ -30,7 +30,7 @@ export const PLANS = [
     id:       "monthly",
     label:    "1 сар",
     days:     30,
-    price:    "9,900",
+    price:    "4500",
     badge:    "Хамгийн алдартай",
     features: ["Бүх кино үзэх", "HD чанар", "Дурын төхөөрөмж", "Шинэ кино шууд"],
     accent:   "#00e5ff",
@@ -39,7 +39,7 @@ export const PLANS = [
     id:       "yearly",
     label:    "1 жил",
     days:     365,
-    price:    "79,900",
+    price:    "15000,900",
     badge:    "Хэмнэлттэй",
     features: ["Бүх кино үзэх", "4K чанар", "Дурын төхөөрөмж", "Шинэ кино шууд", "Зар байхгүй"],
     accent:   "#f59e0b",

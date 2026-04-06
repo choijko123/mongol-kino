@@ -5,7 +5,7 @@ import { s } from "../styles/theme";
 import { useWindowWidth } from "../hooks/useWindowWidth";
 import { ProfileMenu } from "./ProfileMenu";
 
-export function Nav({ user, isAdmin, page, setPage }) {
+export function Nav({ user, isAdmin, page, setPage, subStatus }) {
   const [mOpen, setMOpen] = useState(false);
   const w = useWindowWidth();
   const isMob = w < 640;
@@ -29,7 +29,7 @@ export function Nav({ user, isAdmin, page, setPage }) {
             {user ? (
               <>
                 {isAdmin && <button style={page==="admin"?s.navBtnActive:s.navBtn} onClick={()=>setPage("admin")}>Админ</button>}
-                <ProfileMenu user={user} setPage={setPage} isAdmin={isAdmin} />
+                <ProfileMenu user={user} setPage={setPage} isAdmin={isAdmin} subStatus={subStatus} />
               </>
             ) : (
               <>
@@ -55,7 +55,7 @@ export function Nav({ user, isAdmin, page, setPage }) {
                 </div>
               </div>
               {isAdmin && <button onClick={()=>{setPage("admin");setMOpen(false);}} style={s.mobileDrawerBtn}>⚙ Админ панель</button>}
-              <button onClick={()=>{setPage("subscribe");setMOpen(false);}} style={s.mobileDrawerBtn}>◈ Subscription</button>
+              {subStatus !== "active" && <button onClick={()=>{setPage("subscribe");setMOpen(false);}} style={s.mobileDrawerBtn}>◈ Subscription авах</button>}
               <button onClick={async()=>{await signOut(auth);setMOpen(false);setPage("home");}} style={{...s.mobileDrawerBtn,color:"#9966cc",borderColor:"rgba(124,58,237,0.3)"}}>→ Гарах</button>
             </>
           ) : (

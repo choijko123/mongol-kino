@@ -27,7 +27,7 @@ async function loadSubInfo(uid) {
   } catch { return null; }
 }
 
-export function ProfileMenu({ user, setPage, isAdmin }) {
+export function ProfileMenu({ user, setPage, isAdmin, subStatus }) {
   const [open,    setOpen]    = useState(false);
   const [subInfo, setSubInfo] = useState(null);
   const [copied,  setCopied]  = useState(false);
@@ -190,75 +190,95 @@ export function ProfileMenu({ user, setPage, isAdmin }) {
         <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(0,229,255,0.08)" }}>
           <div style={{ fontSize:9, color:"rgba(0,229,255,0.35)", letterSpacing:2,
             textTransform:"uppercase", fontFamily:F.mono, marginBottom:12 }}>
-            Subscription
+            {subStatus === "active" ? "Таны эрх" : "Subscription"}
           </div>
 
-          {/* Active — full detail */}
-          {subInfo?.status === "active" ? (
+          {/* Active — full detail (subStatus prop эсвэл Firestore subInfo) */}
+          {(subStatus === "active" || subInfo?.status === "active") ? (
             <div style={{ background:`${subColor}0d`,
               border:`1px solid ${subColor}33`, borderRadius:14, overflow:"hidden" }}>
 
-              {/* Top row: days left + label */}
-              <div style={{ display:"flex", alignItems:"stretch" }}>
-                {/* Big number */}
-                <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column",
-                  alignItems:"center", justifyContent:"center",
-                  borderRight:`1px solid ${subColor}22`, flexShrink:0, minWidth:80 }}>
-                  <div style={{ fontFamily:F.orb, fontSize:40, fontWeight:900, lineHeight:1,
-                    color:subColor, textShadow:`0 0 16px ${subColor}66` }}>
-                    {subInfo.daysLeft}
-                  </div>
-                  <div style={{ fontSize:9, color:`${subColor}cc`, fontFamily:F.mono,
-                    letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}>
-                    хоног
-                  </div>
+              {/* subInfo fetch хийгдэж байна */}
+              {!subInfo ? (
+                <div style={{ padding:"20px 18px", display:"flex", alignItems:"center", gap:10 }}>
+                  <span style={{ width:7, height:7, borderRadius:"50%", background:subColor,
+                    animation:"sub-pulse 1s infinite", flexShrink:0 }} />
+                  <span style={{ fontSize:12, color:subColor, fontFamily:F.mono, letterSpacing:1 }}>
+                    ИДЭВХТЭЙ
+                  </span>
+                  <span style={{ fontSize:11, color:"rgba(180,200,255,0.4)", fontFamily:F.raj, marginLeft:4 }}>
+                    мэдээлэл ачааллаж байна...
+                  </span>
                 </div>
-
-                {/* Right info */}
-                <div style={{ flex:1, padding:"14px 16px", display:"flex",
-                  flexDirection:"column", justifyContent:"center", gap:6 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <span style={{ width:6, height:6, borderRadius:"50%",
-                      background:subColor, boxShadow:`0 0 6px ${subColor}`,
-                      flexShrink:0, animation:"sub-pulse 2s infinite" }} />
-                    <span style={{ fontSize:11, fontWeight:700, color:subColor,
-                      fontFamily:F.mono, letterSpacing:1, textTransform:"uppercase" }}>
-                      Идэвхтэй
-                    </span>
-                    {subInfo.plan && (
-                      <span style={{ fontSize:9, color:`${subColor}88`,
-                        fontFamily:F.mono, marginLeft:4 }}>· {subInfo.plan}</span>
-                    )}
-                  </div>
-                  <div>
-                    <div style={{ fontSize:9, color:"rgba(180,200,255,0.35)",
-                      fontFamily:F.mono, letterSpacing:1, marginBottom:3 }}>
-                      ДУУСАХ ОГНОО
+              ) : (
+                <>
+                  {/* Top row: days left + label */}
+                  <div style={{ display:"flex", alignItems:"stretch" }}>
+                    {/* Big number */}
+                    <div style={{ padding:"16px 18px", display:"flex", flexDirection:"column",
+                      alignItems:"center", justifyContent:"center",
+                      borderRight:`1px solid ${subColor}22`, flexShrink:0, minWidth:80 }}>
+                      <div style={{ fontFamily:F.orb, fontSize:40, fontWeight:900, lineHeight:1,
+                        color:subColor, textShadow:`0 0 16px ${subColor}66` }}>
+                        {subInfo.daysLeft}
+                      </div>
+                      <div style={{ fontSize:9, color:`${subColor}cc`, fontFamily:F.mono,
+                        letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}>
+                        хоног
+                      </div>
                     </div>
-                    <div style={{ fontSize:14, fontWeight:700, color:"#fff", fontFamily:F.raj }}>
-                      {subInfo.expiry.toLocaleDateString("mn-MN", {
-                        year:"numeric", month:"long", day:"numeric"
-                      })}
+
+                    {/* Right info */}
+                    <div style={{ flex:1, padding:"14px 16px", display:"flex",
+                      flexDirection:"column", justifyContent:"center", gap:6 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+                        <span style={{ width:6, height:6, borderRadius:"50%",
+                          background:subColor, boxShadow:`0 0 6px ${subColor}`,
+                          flexShrink:0, animation:"sub-pulse 2s infinite" }} />
+                        <span style={{ fontSize:11, fontWeight:700, color:subColor,
+                          fontFamily:F.mono, letterSpacing:1, textTransform:"uppercase" }}>
+                          Идэвхтэй
+                        </span>
+                        {subInfo.plan && (
+                          <span style={{ fontSize:10, color:"#fff", fontFamily:F.raj,
+                            fontWeight:700, background:`${subColor}22`,
+                            border:`1px solid ${subColor}44`,
+                            padding:"1px 8px", borderRadius:4 }}>
+                            {subInfo.plan}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <div style={{ fontSize:9, color:"rgba(180,200,255,0.35)",
+                          fontFamily:F.mono, letterSpacing:1, marginBottom:3 }}>
+                          ДУУСАХ ОГНОО
+                        </div>
+                        <div style={{ fontSize:14, fontWeight:700, color:"#fff", fontFamily:F.raj }}>
+                          {subInfo.expiry.toLocaleDateString("mn-MN", {
+                            year:"numeric", month:"long", day:"numeric"
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Progress bar */}
-              <div style={{ padding:"0 16px 14px" }}>
-                <DaysBar daysLeft={subInfo.daysLeft} totalDays={subInfo.totalDays} color={subColor} />
-              </div>
+                  {/* Progress bar */}
+                  <div style={{ padding:"0 16px 14px" }}>
+                    <DaysBar daysLeft={subInfo.daysLeft} totalDays={subInfo.totalDays} color={subColor} />
+                  </div>
 
-              {/* Expiry warning */}
-              {subInfo.daysLeft <= 5 && (
-                <div style={{ margin:"0 12px 12px", padding:"8px 12px", borderRadius:8,
-                  background: subInfo.daysLeft <= 3 ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.08)",
-                  border:`1px solid ${subInfo.daysLeft<=3?"rgba(239,68,68,0.3)":"rgba(245,158,11,0.2)"}`,
-                  fontSize:12, color:subColor, fontFamily:F.raj, fontWeight:600 }}>
-                  {subInfo.daysLeft <= 3
-                    ? "⚠ Subscription удахгүй дуусна! Сунгана уу."
-                    : "⏳ Subscription дуусахад 5 хоног үлдлээ."}
-                </div>
+                  {/* Expiry warning */}
+                  {subInfo.daysLeft <= 5 && (
+                    <div style={{ margin:"0 12px 12px", padding:"8px 12px", borderRadius:8,
+                      background: subInfo.daysLeft <= 3 ? "rgba(239,68,68,0.1)" : "rgba(245,158,11,0.08)",
+                      border:`1px solid ${subInfo.daysLeft<=3?"rgba(239,68,68,0.3)":"rgba(245,158,11,0.2)"}`,
+                      fontSize:12, color:subColor, fontFamily:F.raj, fontWeight:600 }}>
+                      {subInfo.daysLeft <= 3
+                        ? "⚠ Subscription удахгүй дуусна! Сунгана уу."
+                        : "⏳ Subscription дуусахад 5 хоног үлдлээ."}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
@@ -268,14 +288,17 @@ export function ProfileMenu({ user, setPage, isAdmin }) {
                 background:`${subColor}12`, border:`1px solid ${subColor}33`,
                 borderRadius:8, padding:"8px 14px" }}>
                 <span style={{ fontSize:13 }}>
-                  {!subInfo ? "○" : subInfo.status==="pending" ? "⏳" : "✕"}
+                  {subStatus === "pending" || subInfo?.status === "pending" ? "⏳" :
+                   !subInfo ? "○" : "✕"}
                 </span>
                 <span style={{ fontSize:12, fontWeight:700, color:subColor,
                   fontFamily:F.mono, letterSpacing:1, textTransform:"uppercase" }}>
-                  {subLabel}
+                  {subStatus === "pending" || subInfo?.status === "pending"
+                    ? "Хүлээгдэж байна"
+                    : subLabel}
                 </span>
               </div>
-              {subInfo?.status === "pending" && (
+              {(subStatus === "pending" || subInfo?.status === "pending") && (
                 <span style={{ fontSize:11, color:"rgba(180,200,255,0.4)", fontFamily:F.raj }}>
                   Шалгаж байна...
                 </span>
@@ -306,11 +329,12 @@ export function ProfileMenu({ user, setPage, isAdmin }) {
 
         {/* ── ACTIONS ── */}
         <div style={{ borderTop:"1px solid rgba(0,229,255,0.08)", padding:"8px 10px 16px" }}>
-          {subInfo?.status !== "active" ? (
+          {/* subStatus prop (App.js-аас) болон subInfo хоёуланг шалгана */}
+          {(subStatus !== "active" && subInfo?.status !== "active") ? (
             <button onClick={() => { setOpen(false); setPage("subscribe"); }} style={actionBtn("#00e5ff")}>
               ◈ Subscription авах
             </button>
-          ) : subInfo.daysLeft <= 7 ? (
+          ) : subInfo?.daysLeft != null && subInfo.daysLeft <= 7 ? (
             <button onClick={() => { setOpen(false); setPage("subscribe"); }} style={actionBtn("#f59e0b", "rgba(245,158,11,0.08)", "rgba(245,158,11,0.3)")}>
               ↻ Сунгах
             </button>
