@@ -1,0 +1,33 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*')
+        && request.resource.size < 5 * 1024 * 1024;  // 5MB
+    }
+
+    function isValidVideo() {
+      return request.resource.contentType.matches('video/.*')
+        && request.resource.size < 500 * 1024 * 1024; // 500MB
+    }
+
+    // Poster зургууд
+    match /posters/{filename} {
+      allow read:  if request.auth != null;
+      allow write: if isAdmin() && isValidImage();
+    }
+
+    // Видео файлууд
+    match /videos/{filename} {
+      allow read:  if request.auth != null;
+      allow write: if isAdmin() && isValidVideo();
+    }
+  }
+}

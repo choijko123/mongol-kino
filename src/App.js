@@ -1,44 +1,53 @@
-// ─── КиноТайм — үндсэн routing файл ─────────────────────────────
 import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { upsertUser, getUserRole } from "./services/userService";
 
-import "./config/constants";            // fonts inject
-import { ADMIN_EMAIL } from "./config/constants";
+import "./config/constants";
 import { css } from "./styles/animations";
-import { Splash } from "./components/Splash";
-import { Nav } from "./components/Nav";
-import { Toast } from "./components/Toast";
-import { Home } from "./pages/Home";
-import { Watch } from "./pages/Watch";
-import { Login } from "./pages/Login";
-import { Register } from "./pages/Register";
-import { Admin } from "./pages/Admin";
-import { Subscribe } from "./pages/Subscribe";
-import { SubGate } from "./pages/SubGate";
+import { Splash }     from "./components/Splash";
+import { Nav }        from "./components/Nav";
+import { Toast }      from "./components/Toast";
+import { Home }       from "./pages/Home";
+import { Watch }      from "./pages/Watch";
+import { Login }      from "./pages/Login";
+import { Register }   from "./pages/Register";
+import { Admin }      from "./pages/Admin";
+import { Subscribe }  from "./pages/Subscribe";
+import { SubGate }    from "./pages/SubGate";
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [movies, setMovies] = useState([]);
-  const [page, setPage] = useState("home");
-  const [watchMovie, setWatchMovie] = useState(null);
-  const [toast, setToast] = useState(null);
+  const [user,      setUser]      = useState(null);
+  const [role,      setRole]      = useState("user");   // "user" | "admin" | "moderator"
+  const [loading,   setLoading]   = useState(true);
+  const [movies,    setMovies]    = useState([]);
+  const [page,      setPage]      = useState("home");
+  const [watchMovie,setWatchMovie]= useState(null);
+  const [toast,     setToast]     = useState(null);
   const [subStatus, setSubStatus] = useState(null);
 
-  // Auth listener
+  /* ── Auth listener ── */
   useEffect(() => {
-    return onAuthStateChanged(auth, (u) => {
+    return onAuthStateChanged(auth, async (u) => {
       setUser(u);
+      if (u) {
+        // Firestore-д бүртгэх + role авах
+        await upsertUser(u);
+        const r = await getUserRole(u.uid);
+        setRole(r);
+      } else {
+        setRole("user");
+        setSubStatus(null);
+      }
       setLoading(false);
     });
   }, []);
 
-  // Subscription статус
+  /* ── Subscription status ── */
   useEffect(() => {
     if (!user) { setSubStatus(null); return; }
-    getDoc(doc(db, "subscriptions", user.uid)).then((snap) => {
+    getDoc(doc(db, "subscriptions", user.uid)).then(snap => {
       if (!snap.exists()) { setSubStatus(null); return; }
       const d = snap.data();
       if (d.status === "active") {
@@ -50,13 +59,13 @@ export default function App() {
     }).catch(() => setSubStatus(null));
   }, [user]);
 
-  // Movies fetch
+  /* ── Movies fetch ── */
   useEffect(() => {
     import("firebase/firestore").then(({ collection, getDocs, query, orderBy }) => {
       const q = query(collection(db, "movies"), orderBy("createdAt", "desc"));
-      getDocs(q).then((snap) => {
-        setMovies(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-      }).catch(() => setMovies([]));
+      getDocs(q)
+        .then(snap => setMovies(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+        .catch(() => setMovies([]));
     });
   }, []);
 
@@ -70,7 +79,15 @@ export default function App() {
     setPage("watch");
   }
 
-  const isAdmin = user?.email === ADMIN_EMAIL;
+  function fetchMovies() {
+    import("firebase/firestore").then(({ collection, getDocs, query, orderBy }) => {
+      const q = query(collection(db, "movies"), orderBy("createdAt", "desc"));
+      getDocs(q).then(snap => setMovies(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    });
+  }
+
+  const isAdmin = role === "admin";
+  const canWatch = isAdmin || subStatus === "active";
 
   if (loading) return <Splash />;
 
@@ -83,24 +100,19 @@ export default function App() {
       {page === "home" && (
         <Home movies={movies} user={user} setPage={setPage} openWatch={openWatch} subStatus={subStatus} />
       )}
-      {page === "login" && <Login setPage={setPage} showToast={showToast} />}
-      {page === "register" && <Register setPage={setPage} showToast={showToast} />}
+      {page === "login"     && <Login    setPage={setPage} showToast={showToast} />}
+      {page === "register"  && <Register setPage={setPage} showToast={showToast} />}
       {page === "subscribe" && (
         <Subscribe user={user} setPage={setPage} subStatus={subStatus} showToast={showToast} />
       )}
       {page === "admin" && isAdmin && (
-        <Admin movies={movies} fetchMovies={() => {
-          import("firebase/firestore").then(({ collection, getDocs, query, orderBy }) => {
-            const q = query(collection(db, "movies"), orderBy("createdAt", "desc"));
-            getDocs(q).then(snap => setMovies(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
-          });
-        }} showToast={showToast} />
+        <Admin movies={movies} fetchMovies={fetchMovies} showToast={showToast} />
       )}
       {page === "watch" && (
         watchMovie
-          ? (subStatus === "active" || isAdmin
-              ? <Watch movie={watchMovie} setPage={setPage} />
-              : <SubGate setPage={setPage} subStatus={subStatus} />)
+          ? canWatch
+            ? <Watch movie={watchMovie} setPage={setPage} />
+            : <SubGate setPage={setPage} subStatus={subStatus} />
           : null
       )}
     </div>
