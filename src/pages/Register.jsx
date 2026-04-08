@@ -17,14 +17,17 @@ export function Register({ setPage, showToast }) {
   const w     = useWindowWidth();
   const isMob = w < 640;
 
-  /* Мобайл redirect буцаж ирэхэд барна */
   useEffect(() => {
-    getRedirectResult(auth).then(result => {
-      if (result?.user) {
-        showToast("Google-оор амжилттай бүртгүүллээ!");
-        setPage("home");
-      }
-    }).catch(() => {});
+    setGLoad(true);
+    getRedirectResult(auth)
+      .then(result => {
+        if (result?.user) {
+          showToast("Google-оор амжилттай бүртгүүллээ!");
+          setPage("home");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setGLoad(false));
   }, []);
 
   async function submit(e) {
@@ -47,7 +50,7 @@ export function Register({ setPage, showToast }) {
   async function handleGoogle() {
     setErr(""); setGLoad(true);
     try {
-      const user = await signInWithGoogle(isMob);
+      const user = await signInWithGoogle();
       if (user) {
         showToast("Google-оор амжилттай бүртгүүллээ!");
         setPage("home");
@@ -56,27 +59,21 @@ export function Register({ setPage, showToast }) {
       if (e.code !== "auth/popup-closed-by-user") {
         setErr("Google бүртгэл амжилтгүй боллоо.");
       }
+      setGLoad(false);
     }
-    setGLoad(false);
   }
 
   return (
     <div style={s.authWrap}>
       <div style={{ ...s.authBox, padding:isMob?"24px 20px":"32px 28px" }} className="kt-auth-slide">
-
-        {/* Logo */}
         <div style={s.authLogo} className="kt-logo-glow">
           КИН<span style={{color:"#00e5ff"}}>●</span>ТАЙМ
         </div>
         <div style={s.authTitle}>Шинэ бүртгэл үүсгэх</div>
 
-        {/* ── Google button ── */}
         <GoogleBtn loading={gLoad} onClick={handleGoogle} label="Google-оор бүртгүүлэх" />
-
-        {/* ── Divider ── */}
         <Divider />
 
-        {/* ── Email form ── */}
         <form onSubmit={submit} style={s.form}>
           <label style={s.label}>Нэр</label>
           <input style={s.input} value={name}
@@ -91,7 +88,8 @@ export function Register({ setPage, showToast }) {
           <input style={s.input} type="password" value={pw2}
             onChange={e=>setPw2(e.target.value)} placeholder="••••••••" required />
           {err && <div style={s.errMsg}>{err}</div>}
-          <button type="submit" disabled={loading} style={{ ...s.btnRed, opacity:loading?0.6:1 }}>
+          <button type="submit" disabled={loading || gLoad}
+            style={{ ...s.btnRed, opacity:(loading||gLoad)?0.6:1 }}>
             {loading ? "Бүртгүүлж байна..." : "Бүртгүүлэх"}
           </button>
         </form>
